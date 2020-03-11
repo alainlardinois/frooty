@@ -23,6 +23,13 @@ client_credentials_manager = SpotifyClientCredentials(client_id=client_id, clien
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 
+def is_guild(ctx):
+    if ctx.guild:
+        return True
+    else:
+        raise commands.NoPrivateMessage
+
+
 class YTDLSource(discord.PCMVolumeTransformer):
     __slots__ = ('data', 'title', 'url', 'thumbnail', 'uploader', 'duration', 'yt_url', 'requester', 'skip_votes',
                  'id', 'ext', 'query')
@@ -153,6 +160,7 @@ class Music(commands.Cog):
         return player
 
     @commands.command(aliases=['connect'])
+    @commands.check(is_guild)
     async def join(self, ctx):
         """Connect the bot to your current voice channel"""
         if ctx.author.voice is None:
@@ -168,6 +176,7 @@ class Music(commands.Cog):
             await self.log.info(str(ctx.author) + ' used command JOIN')
 
     @commands.command()
+    @commands.check(is_guild)
     async def play(self, ctx, *, query: str):
         """Request a song and add it to the queue"""
         if ctx.author.voice is None:
@@ -212,6 +221,7 @@ class Music(commands.Cog):
         await ctx.message.delete()
 
     @commands.command(aliases=['resume'])
+    @commands.check(is_guild)
     async def pause(self, ctx):
         """Pause or resume the current song"""
         if not ctx.voice_client:
@@ -230,6 +240,7 @@ class Music(commands.Cog):
         await self.log.info(str(ctx.author) + ' used command PAUSE')
 
     @commands.command(aliases=['s', 'next'])
+    @commands.check(is_guild)
     async def skip(self, ctx, *, args=None):
         """Skip the current song"""
         if not ctx.voice_client:
@@ -263,6 +274,7 @@ class Music(commands.Cog):
         await self.log.info(str(ctx.author) + ' used command SKIP')
 
     @commands.command()
+    @commands.check(is_guild)
     async def loop(self, ctx):
         """Play the queue in a loop"""
         if not ctx.voice_client:
@@ -282,6 +294,7 @@ class Music(commands.Cog):
         await self.log.info(str(ctx.author) + ' used command LOOP')
 
     @commands.command()
+    @commands.check(is_guild)
     async def playlist(self, ctx, url):
         """Add a spotify playlist to the queue. Take the Spotify playlist URL"""
         if not ctx.voice_client:
@@ -310,6 +323,7 @@ class Music(commands.Cog):
                            " `https://open.spotify.com/playlist/`**")
 
     @commands.command(name='queue', aliases=['q'])
+    @commands.check(is_guild)
     async def queue_info(self, ctx):
         """View the queue"""
         if not ctx.voice_client:
@@ -335,6 +349,7 @@ class Music(commands.Cog):
         await self.log.info(str(ctx.author) + ' used command QUEUE')
 
     @commands.command()
+    @commands.check(is_guild)
     async def now(self, ctx):
         """Check which song is currently playing"""
         if not ctx.voice_client:
@@ -366,6 +381,7 @@ class Music(commands.Cog):
         await self.log.info(str(ctx.author) + ' used command NOW')
 
     @commands.command(aliases=['rm'])
+    @commands.check(is_guild)
     async def remove(self, ctx, queue_number: int):
         """Remove a song from the queue"""
         if not ctx.voice_client:
@@ -397,6 +413,7 @@ class Music(commands.Cog):
         await self.log.info(str(ctx.author) + ' used command REMOVE')
 
     @commands.command(aliases=['vol'])
+    @commands.check(is_guild)
     async def volume(self, ctx, *, vol: float):
         """Change the volume"""
         if not ctx.voice_client:
@@ -418,6 +435,7 @@ class Music(commands.Cog):
         await self.log.info(str(ctx.author) + ' used command VOLUME')
 
     @commands.command(aliases=['leave'])
+    @commands.check(is_guild)
     async def stop(self, ctx):
         """Stop the music and leave the channel"""
         if not ctx.voice_client:
