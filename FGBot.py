@@ -107,7 +107,7 @@ async def on_message(message):
     is_guild(ctx)
     if not ctx.valid:
         if "<@!{}>".format(bot.user.id) in message.content:
-            with open("prefixes.json") as prefix_read:
+            with open("/config/prefixes.json") as prefix_read:
                 prefix_json = json.load(prefix_read)
             try:
                 guild_prefix = prefix_json[str(bot.user.id)][str(ctx.guild.id)]

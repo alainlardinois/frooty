@@ -62,7 +62,7 @@ class Bot(commands.Cog):
     @commands.check(is_guild)
     async def prefix(self, ctx, guild_prefix=None):
         """Get the current prefix for this guild or choose another one"""
-        with open("prefixes.json") as prefix_read:
+        with open("/config/prefixes.json") as prefix_read:
             prefix_json = json.load(prefix_read)
         if not guild_prefix:
             try:
@@ -72,7 +72,7 @@ class Bot(commands.Cog):
             description = ""
         else:
             prefix_json[str(self.bot.user.id)][str(ctx.guild.id)] = guild_prefix
-            with open("prefixes.json", "w+") as prefix_write:
+            with open("/config/prefixes.json", "w+") as prefix_write:
                 prefix_write.write(json.dumps(prefix_json))
             description = "Prefix changed!"
         embed = discord.Embed(description="{} Use `{}` or <@{}> in this guild".format(description, guild_prefix,
