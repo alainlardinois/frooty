@@ -1,5 +1,5 @@
 from discord.ext import commands
-from Logger import AsyncLogger
+from cogs.Logger import AsyncLogger
 
 
 class CommandErrorHandler(commands.Cog):
