@@ -1,0 +1,39 @@
+image: docker:latest
+services:
+- docker:dind
+
+stages:
+- build
+- deploy
+
+variables:
+  TEST_IMAGE: $CI_REGISTRY/ParrotLync/frooty/frooty:$CI_COMMIT_REF_NAME
+  RELEASE_IMAGE: $CI_REGISTRY/ParrotLync/frooty/frooty:latest
+
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  - mkdir -p ~/.ssh
+  - eval $(ssh-agent -s)
+  - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  
+build:
+  stage: build
+  script:
+    - docker build --pull -t $RELEASE_IMAGE .
+    - docker push $RELEASE_IMAGE
+  only:
+    - master
+    
+deploy:
+  stage: deploy
+  type: deploy
+  environment:
+    name: production
+    url: vps02.ip-ict.nl
+  script:
+    - chmod 600 "$SSH_PRIVATE_KEY"
+    - ssh-add "$SSH_PRIVATE_KEY"
+    - ssh root@vps02.ip-ict.nl "docker pull $RELEASE_IMAGE && docker stop frooty && docker rm frooty && docker run -d --restart always --name frooty $RELEASE_IMAGE && exit"
+  only:
+    - master
