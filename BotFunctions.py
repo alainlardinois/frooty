@@ -5,6 +5,13 @@ from Logger import AsyncLogger
 import json
 
 
+def is_guild(ctx):
+    if ctx.guild:
+        return True
+    else:
+        raise commands.NoPrivateMessage
+
+
 class Bot(commands.Cog):
     """General bot commands"""
     __slots__ = ('bot', 'log')
@@ -52,6 +59,7 @@ class Bot(commands.Cog):
         await self.log.info(str(ctx.author) + ' used command PING')
 
     @commands.command()
+    @commands.check(is_guild)
     async def prefix(self, ctx, guild_prefix=None):
         """Get the current prefix for this guild or choose another one"""
         with open("prefixes.json") as prefix_read:

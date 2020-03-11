@@ -31,6 +31,13 @@ def get_prefix(bot, msg):
         return commands.when_mentioned_or('!')(bot, msg)
 
 
+def is_guild(ctx):
+    if ctx.guild:
+        return True
+    else:
+        raise commands.NoPrivateMessage
+
+
 bot = commands.AutoShardedBot(command_prefix=get_prefix,
                               description="Frooty is designed for the FrootGaming Community " +
                                           "to support administrative features or help with some fun")
@@ -97,6 +104,7 @@ async def on_member_join(member):
 @bot.event
 async def on_message(message):
     ctx = await bot.get_context(message)
+    is_guild(ctx)
     if not ctx.valid:
         if "<@!{}>".format(bot.user.id) in message.content:
             with open("prefixes.json") as prefix_read:
