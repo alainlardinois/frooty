@@ -1,0 +1,23 @@
+{
+  "tokens": {
+    "Zuydbot": "NTMxNzc3NTMzMzYwODY1Mjgw.XYn0pA.x9XXFzIfnTUjveVASCPYM1p58h4",
+    "Freek": "NTE0MDM0ODM4MDQ3ODE3NzI4.DtQr_g.q-Vla5V29CqLN3yC3xxrXWEB_-A",
+    "FGBot": "NTI0MjYyNTA4MzI5MTcyOTk2.DvlhHw.HpL7OMPkvE0l9l1siD-Hh42zXRo"
+  },
+  "spotify": {
+    "id": "c6492b13fcea485a8f22266f167a7728",
+    "secret": "d3de775f86574eaa8bc268cff3d23f58"
+  },
+  "logging": {
+    "key": "463dc4cc0224660a36c4a1492faab0b3"
+  },
+  "discord": {
+    "client_id": "531777533360865280",
+    "client_secret": "8WdZH936nm18Nd8j3JhvU65GK0nPoZJg"
+  },
+  "heartbeat_url": "https://heartbeat.uptimerobot.com/m783514488-c33f7404c1b668dfde50b4df319bed0110070403",
+  "master_api": {
+    "id": "3c3d5fc7ce50d11f1c4a70189d15c03f6f063b132f752809dc7ccbf8b05e",
+    "secret": "474c0129ed66d38ac29f33048b3cbc8fe152a30d3534d633071f2c48b997"
+  }
+}
