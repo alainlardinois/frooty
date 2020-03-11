@@ -1,0 +1,6 @@
+discord
+logdna
+requests
+youtube_dl
+spotipy
+Chatbot
