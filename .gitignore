@@ -2,3 +2,4 @@ test.py
 .idea
 config.json
 prefixes.json
+__pycache__
