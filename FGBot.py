@@ -2,13 +2,12 @@ import discord.ext
 from discord.ext import commands
 import datetime
 import os
-from Logger import AsyncLogger, Logger
+from cogs.Logger import AsyncLogger, Logger
 import logging
 import json
-import asyncio
 
 client = discord.Client()
-startup_extensions = ["Music", "BotFunctions", "Extensions", "CommandErrorHandler"]
+startup_extensions = ["cogs.Music", "cogs.BotFunctions", "cogs.Extensions", "cogs.CommandErrorHandler"]
 with open('/config/config.json') as config_file:
     config = json.load(config_file)
 
