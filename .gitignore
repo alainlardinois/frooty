@@ -3,3 +3,4 @@ test.py
 config.json
 prefixes.json
 __pycache__
+config
