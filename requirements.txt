@@ -1,5 +1,7 @@
 discord
+ffmpeg
+ffmpeg-python
 logdna
 requests
-youtube_dl
+youtube-dl
 spotipy
