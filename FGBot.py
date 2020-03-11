@@ -117,7 +117,7 @@ async def on_message(message):
                 embed.add_field(name="Prefix", value="Use `{}` or <@{}> in this guild".format(guild_prefix, bot.user.id))
                 embed.set_footer(text="Bot made by ParrotLync#2458")
                 await ctx.send(embed=embed)
-        else:
+        elif ctx.author.id != bot.user.id:
             await ctx.send(":no_entry: `This command can't be used in private messaging.`")
     await bot.process_commands(message)
 
