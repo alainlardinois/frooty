@@ -104,19 +104,21 @@ async def on_member_join(member):
 @bot.event
 async def on_message(message):
     ctx = await bot.get_context(message)
-    is_guild(ctx)
     if not ctx.valid:
-        if "<@!{}>".format(bot.user.id) in message.content:
-            with open("/config/prefixes.json") as prefix_read:
-                prefix_json = json.load(prefix_read)
-            try:
-                guild_prefix = prefix_json[str(bot.user.id)][str(ctx.guild.id)]
-            except KeyError:
-                guild_prefix = '!'
-            embed = discord.Embed(title=bot.user.name, description=bot.description, color=0x4F8FF3)
-            embed.add_field(name="Prefix", value="Use `{}` or <@{}> in this guild".format(guild_prefix, bot.user.id))
-            embed.set_footer(text="Bot made by ParrotLync#2458")
-            await ctx.send(embed=embed)
+        if ctx.guild:
+            if "<@!{}>".format(bot.user.id) in message.content:
+                with open("/config/prefixes.json") as prefix_read:
+                    prefix_json = json.load(prefix_read)
+                try:
+                    guild_prefix = prefix_json[str(bot.user.id)][str(ctx.guild.id)]
+                except KeyError:
+                    guild_prefix = '!'
+                embed = discord.Embed(title=bot.user.name, description=bot.description, color=0x4F8FF3)
+                embed.add_field(name="Prefix", value="Use `{}` or <@{}> in this guild".format(guild_prefix, bot.user.id))
+                embed.set_footer(text="Bot made by ParrotLync#2458")
+                await ctx.send(embed=embed)
+        else:
+            await ctx.send(":no_entry: `This command can't be used in private messaging.`")
     await bot.process_commands(message)
 
 
