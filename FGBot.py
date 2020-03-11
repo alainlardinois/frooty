@@ -9,7 +9,7 @@ import asyncio
 
 client = discord.Client()
 startup_extensions = ["Music", "BotFunctions", "Extensions", "CommandErrorHandler"]
-with open('config.json') as config_file:
+with open('/config/config.json') as config_file:
     config = json.load(config_file)
 
 os.system('clear')
@@ -18,7 +18,7 @@ print("")
 
 
 def get_prefix(bot, msg):
-    with open('prefixes.json') as prefix_file:
+    with open('/config/prefixes.json') as prefix_file:
         prefixes = json.load(prefix_file)
     guilds = []
     for guild in prefixes[str(bot.user.id)]:

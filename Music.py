@@ -14,7 +14,7 @@ ffmpeg_options = {
     'before_options': '-nostdin',
     'options': '-vn'}
 
-with open('config.json') as config_file:
+with open('/config/config.json') as config_file:
     config = json.load(config_file)
 
 client_id = config['spotify']['id']
