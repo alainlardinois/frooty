@@ -5,7 +5,7 @@ from async_timeout import timeout
 from functools import partial
 from youtube_dl import YoutubeDL
 import time
-from Logger import Logger, AsyncLogger
+from cogs.Logger import Logger, AsyncLogger
 import json
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials

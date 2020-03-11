@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from Logger import AsyncLogger
+from cogs.Logger import AsyncLogger
 
 
 class Extensions(commands.Cog):

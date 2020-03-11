@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import asyncio
-from Logger import AsyncLogger
+from cogs.Logger import AsyncLogger
 import json
 
 
