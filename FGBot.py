@@ -5,7 +5,6 @@ import os
 from Logger import AsyncLogger, Logger
 import logging
 import json
-import Chatbot
 import asyncio
 
 client = discord.Client()
@@ -42,8 +41,6 @@ logger.setLevel(logging.NOTSET)
 handler = Logger('FrootGaming Bot', 'Discord', bot)
 handler.setFormatter(logging.Formatter('%(levelname)s-%(name)s: %(message)s'))
 logger.addHandler(handler)
-
-chatbot = Chatbot.Handler(log)
 
 
 def get_footer(ctx):
@@ -91,42 +88,6 @@ class General(commands.Cog):
         await log.info(str(ctx.author) + ' used command ENCRYPT')
 
 
-class Chat(commands.Cog):
-    __slots__ = 'bot'
-
-    def __init__(self):
-        self.bot = bot
-
-    @commands.command()
-    @commands.is_owner()
-    async def list_batches(self, ctx):
-        embed = discord.Embed(title="Conversation batches")
-        for batch in chatbot.batches:
-            embed.add_field(name="#" + str(chatbot.batches.index(batch)),
-                            value=batch['messages'],
-                            inline=False)
-        await ctx.send(embed=embed)
-
-    @commands.command()
-    @commands.is_owner()
-    async def learn_batch(self, ctx, batch_id):
-        chatbot.learn_batch(int(batch_id))
-        await ctx.send(":ballot_box_with_check: **Batch learned.**")
-
-    @commands.command()
-    @commands.is_owner()
-    async def remove_batch(self, ctx, batch_id):
-        chatbot.remove_batch(int(batch_id))
-        await ctx.send(":ballot_box_with_check: **Batch removed.**")
-
-    @commands.command()
-    @commands.is_owner()
-    async def clear_data(self, ctx):
-        chatbot.batches.clear()
-        chatbot.cache.clear()
-        await ctx.send(":ballot_box_with_check: **Batches and Cache cleared.**")
-
-
 @bot.event
 async def on_member_join(member):
     channel = bot.get_channel(589120991985139733)
@@ -135,14 +96,6 @@ async def on_member_join(member):
 
 @bot.event
 async def on_message(message):
-    response = chatbot.handle_message(message)
-    if response is not None:
-        msg = await message.channel.send("**[" + str(response.confidence) + "]** " + str(response))
-        chatbot.cache[str(msg.id)] = [response, str(message.content)]
-        await msg.add_reaction("👍")
-        await asyncio.sleep(5)
-        await msg.clear_reactions()
-
     ctx = await bot.get_context(message)
     if not ctx.valid:
         if "<@!{}>".format(bot.user.id) in message.content:
@@ -157,13 +110,6 @@ async def on_message(message):
             embed.set_footer(text="Bot made by ParrotLync#2458")
             await ctx.send(embed=embed)
     await bot.process_commands(message)
-
-
-@bot.event
-async def on_reaction_add(reaction, user):
-    if str(user) != str(bot.user):
-        if str(reaction) == "👍" and str(reaction.message.author) == str(bot.user):
-            chatbot.learn_response(reaction.message.id)
 
 
 @bot.event
@@ -182,7 +128,6 @@ async def on_ready():
 
 
 bot.add_cog(General())
-bot.add_cog(Chat())
 try:
     bot.run(config['tokens']['FGBot'])
 except RuntimeError:
