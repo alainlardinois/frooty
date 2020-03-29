@@ -98,7 +98,12 @@ class Player:
             except Exception as e:
                 await log.exception(e)
 
-            self.guild.voice_client.play(source, after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set))
+            if self.guild.voice_client is not None:
+                self.guild.voice_client.play(source, after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set))
+            else:
+                self.channel.connect()
+                self.guild.voice_client.play(source, after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set))
+
             self.last_started = time.time()
             await self.channel.send(':headphones: **Now playing:** `{}`'.format(source.title))
             await self.next.wait()
