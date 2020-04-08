@@ -96,8 +96,9 @@ class General(commands.Cog):
 
 @bot.event
 async def on_member_join(member):
-    channel = bot.get_channel(589120991985139733)
-    await channel.send(":confetti_ball: Welcome to the community, **" + str(member) + "**!")
+    if member.guild.id == 455481676542377995:
+        channel = bot.get_channel(589120991985139733)
+        await channel.send(":confetti_ball: Welcome to the community, **" + str(member) + "**!")
 
 
 @bot.event
