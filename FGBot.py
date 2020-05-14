@@ -8,7 +8,7 @@ import json
 
 client = discord.Client()
 startup_extensions = ["cogs.Music", "cogs.BotFunctions", "cogs.Extensions", "cogs.CommandErrorHandler"]
-with open('/config/config.json') as config_file:
+with open('/app/config/config.json') as config_file:
     config = json.load(config_file)
 
 os.system('clear')
@@ -17,7 +17,7 @@ print("")
 
 
 def get_prefix(bot, msg):
-    with open('/config/prefixes.json') as prefix_file:
+    with open('/app/config/prefixes.json') as prefix_file:
         prefixes = json.load(prefix_file)
     guilds = []
     for guild in prefixes[str(bot.user.id)]:
@@ -106,7 +106,7 @@ async def on_message(message):
     ctx = await bot.get_context(message)
     if (not ctx.valid) and "<@!{}>".format(bot.user.id) in message.content:
         if isinstance(message.channel, discord.DMChannel) is False:
-            with open("/config/prefixes.json") as prefix_read:
+            with open("/app/config/prefixes.json") as prefix_read:
                 prefix_json = json.load(prefix_read)
             try:
                 guild_prefix = prefix_json[str(bot.user.id)][str(ctx.guild.id)]
