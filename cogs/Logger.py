@@ -6,7 +6,7 @@ from async_timeout import timeout
 import queue
 import json
 
-with open('/config/config.json') as config_file:
+with open('/app/config/config.json') as config_file:
     config = json.load(config_file)
 
 

@@ -62,7 +62,7 @@ class Bot(commands.Cog):
     @commands.check(is_guild)
     async def prefix(self, ctx, guild_prefix=None):
         """Get the current prefix for this guild or choose another one"""
-        with open("/config/prefixes.json") as prefix_read:
+        with open("/app/config/prefixes.json") as prefix_read:
             prefix_json = json.load(prefix_read)
         if not guild_prefix:
             try:
