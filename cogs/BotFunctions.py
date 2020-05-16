@@ -72,7 +72,7 @@ class Bot(commands.Cog):
             description = ""
         else:
             prefix_json[str(self.bot.user.id)][str(ctx.guild.id)] = guild_prefix
-            with open("/config/prefixes.json", "w+") as prefix_write:
+            with open("/app/config/prefixes.json", "w+") as prefix_write:
                 prefix_write.write(json.dumps(prefix_json))
             description = "Prefix changed!"
         embed = discord.Embed(description="{} Use `{}` or <@{}> in this guild".format(description, guild_prefix,
