@@ -116,7 +116,7 @@ class Player:
         url = url.strip('https://open.spotify.com/playlist/')
         url = url.split('?')
         playlist_id = url[0]
-        playlist = sp.user_playlist(playlist_id=playlist_id, user=None)
+        playlist = sp.playlist(playlist_id=playlist_id)
         for item in playlist['tracks']['items']:
             track = item['track']
             query = track['name'] + ' ' + track['artists'][0]['name']
@@ -310,7 +310,6 @@ class Music(commands.Cog):
                     ctx.voice_client.channel))
 
         if "https://open.spotify.com/playlist/" in url:
-            await ctx.message.delete()
             await ctx.send(":hourglass_flowing_sand: **Now processing your playlist. This may take a moment...**")
             player = self.get_player(ctx)
             data = await player.add_playlist(url, ctx.author)
@@ -342,9 +341,11 @@ class Music(commands.Cog):
         if player.queue.empty():
             return await ctx.send(':negative_squared_cross_mark: **The queue is empty!**')
         count = 0
+        chars = 0
         upcoming = ''
-        while count < 5 and count < len(player.text_queue):
+        while count < len(player.text_queue) and chars < 1900:
             count += 1
+            chars += len(str(count)) + 8 + len(player.text_queue[count - 1])
             upcoming += '**' + str(count) + '. **' + player.text_queue[count - 1] + '\n'
         embed = discord.Embed(title='Queue - next {} songs'.format(count),
                               description=upcoming, color=0x32cd32)
