@@ -1,5 +1,6 @@
 import discord.ext
 from discord.ext import commands
+import requests
 import datetime
 import os
 from cogs.Logger import AsyncLogger, Logger
@@ -92,6 +93,23 @@ class General(commands.Cog):
             new_msg += new_word + ' '
         await ctx.send(new_msg)
         await log.info(str(ctx.author) + ' used command ENCRYPT')
+
+    @commands.command()
+    async def wdem(self, ctx, *, game="GTA V"):
+        url = "https://api-v3.igdb.com/games"
+        headers = {"user-key": config["igdb_api_key"]}
+        payload = 'search "{}"; fields name, cover.image_id;'.format(game)
+        result = requests.get(url=url, headers=headers, data=payload).json()[0]
+        embed = discord.Embed(title="Wie doet er mee met `{}`?".format(result['name']),
+                              description="\n✅ `Ik doe mee!` \n❎ `Ik doe niet mee.` \n❓ `Ik weet het nog niet.`",
+                              color=0x477FC9)
+        embed.set_thumbnail(url="https://images.igdb.com/igdb/image/upload/t_cover_big/{}.jpg"
+                            .format(result['cover']['image_id']))
+        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        message = await ctx.send(embed=embed)
+        await message.add_reaction("✅")
+        await message.add_reaction("❎")
+        await message.add_reaction("❓")
 
 
 @bot.event
