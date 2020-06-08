@@ -96,6 +96,7 @@ class General(commands.Cog):
 
     @commands.command()
     async def wdem(self, ctx, *, game="GTA V"):
+        """Ask people to play a game with a neat poll"""
         url = "https://api-v3.igdb.com/games"
         headers = {"user-key": config["igdb_api_key"]}
         payload = 'search "{}"; fields name, cover.image_id;'.format(game)
@@ -110,6 +111,17 @@ class General(commands.Cog):
         await message.add_reaction("✅")
         await message.add_reaction("❎")
         await message.add_reaction("❓")
+
+@bot.command()
+async def wdone(ctx, *, msg: discord.Message):
+    """Invalidate a previous game poll"""
+    await msg.clear_reactions()
+    await msg.add_reaction("👍")
+    await msg.add_reaction("🇩")
+    await msg.add_reaction("🇴")
+    await msg.add_reaction("🇳")
+    await msg.add_reaction("🇪")
+    await ctx.message.delete()
 
 
 @bot.event
