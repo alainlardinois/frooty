@@ -100,17 +100,20 @@ class General(commands.Cog):
         url = "https://api-v3.igdb.com/games"
         headers = {"user-key": config["igdb_api_key"]}
         payload = 'search "{}"; fields name, cover.image_id;'.format(game)
-        result = requests.get(url=url, headers=headers, data=payload).json()[0]
-        embed = discord.Embed(title="Wie doet er mee met `{}`?".format(result['name']),
-                              description="\n✅ `Ik doe mee!` \n❎ `Ik doe niet mee.` \n❓ `Ik weet het nog niet.`",
-                              color=0x477FC9)
-        embed.set_thumbnail(url="https://images.igdb.com/igdb/image/upload/t_cover_big/{}.jpg"
-                            .format(result['cover']['image_id']))
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
-        message = await ctx.send(embed=embed)
-        await message.add_reaction("✅")
-        await message.add_reaction("❎")
-        await message.add_reaction("❓")
+        try:
+            result = requests.get(url=url, headers=headers, data=payload).json()[0]
+            embed = discord.Embed(title="Wie doet er mee met `{}`?".format(result['name']),
+                                description="\n✅ `Ik doe mee!` \n❎ `Ik doe niet mee.` \n❓ `Ik weet het nog niet.`",
+                                color=0x477FC9)
+            embed.set_thumbnail(url="https://images.igdb.com/igdb/image/upload/t_cover_big/{}.jpg"
+                                .format(result['cover']['image_id']))
+            embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+            message = await ctx.send(embed=embed)
+            await message.add_reaction("✅")
+            await message.add_reaction("❎")
+            await message.add_reaction("❓")
+        except IndexError:
+            await ctx.send(":negative_squared_cross_mark: **No games were found!**")
 
 @bot.command()
 async def wdone(ctx, *, msg: discord.Message):
