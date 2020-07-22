@@ -95,8 +95,10 @@ class General(commands.Cog):
         await log.info(str(ctx.author) + ' used command ENCRYPT')
 
     @commands.command()
-    async def wdem(self, ctx, *, game="GTA V"):
-        """Ask people to play a game with a neat poll"""
+    async def wdem(self, ctx, *,  game=None):
+        """Ask people to play a game with you"""
+        if game is None:
+            game = ctx.channel.topic
         url = "https://api-v3.igdb.com/games"
         headers = {"user-key": config["igdb_api_key"]}
         payload = 'search "{}"; fields name, cover.image_id;'.format(game)
@@ -115,16 +117,25 @@ class General(commands.Cog):
         except IndexError:
             await ctx.send(":negative_squared_cross_mark: **No games were found!**")
 
-@bot.command()
-async def wdone(ctx, *, msg: discord.Message):
+@bot.command(usage="<message>")
+async def wdone(ctx, *, msg: discord.Message = None):
     """Invalidate a previous game poll"""
+    if msg is None:
+        messages = await ctx.channel.history(limit=15).flatten()
+        for message in messages:
+            if message.author == bot.user and (message.embeds is not None or []):
+                embed = message.embeds[0]
+                if "Wie doet er mee" in embed.title:
+                    return await done(message)
+    return await done(msg)
+
+async def done(msg):
     await msg.clear_reactions()
     await msg.add_reaction("👍")
     await msg.add_reaction("🇩")
     await msg.add_reaction("🇴")
     await msg.add_reaction("🇳")
     await msg.add_reaction("🇪")
-    await ctx.message.delete()
 
 
 @bot.event
