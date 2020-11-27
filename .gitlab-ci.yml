@@ -24,16 +24,3 @@ build:
     - docker push $RELEASE_IMAGE
   only:
     - master
-    
-deploy:
-  stage: deploy
-  type: deploy
-  environment:
-    name: production
-    url: vps02.ip-ict.nl
-  script:
-    - chmod 600 "$SSH_PRIVATE_KEY"
-    - ssh-add "$SSH_PRIVATE_KEY"
-    - ssh root@vps02.ip-ict.nl "docker pull $RELEASE_IMAGE && docker stop frooty && docker rm frooty && docker run -d --restart always -v /var/www/html/temp:/var/www/html/temp -v discord-config:/app/config -v discord-cogs:/app/cogs --name frooty $RELEASE_IMAGE && exit"
-  only:
-    - master
