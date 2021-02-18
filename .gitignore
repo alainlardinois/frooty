@@ -4,3 +4,4 @@ config.json
 prefixes.json
 __pycache__
 config
+venv
