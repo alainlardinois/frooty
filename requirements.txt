@@ -3,3 +3,4 @@ logdna
 requests
 youtube-dl
 spotipy
+igdb-api-v4

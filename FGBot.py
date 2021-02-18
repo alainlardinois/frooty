@@ -1,6 +1,6 @@
 import discord.ext
 from discord.ext import commands
-import requests
+from igdb.wrapper import IGDBWrapper
 import datetime
 import os
 from cogs.Logger import AsyncLogger, Logger
@@ -38,6 +38,7 @@ def is_guild(ctx):
         raise commands.NoPrivateMessage
 
 
+wrapper = IGDBWrapper(config['igdb']['client_id'], config['igdb']['access_token'])
 bot = commands.AutoShardedBot(command_prefix=get_prefix,
                               description="Frooty is designed for the FrootGaming Community " +
                                           "to support administrative features or help with some fun")
@@ -95,18 +96,21 @@ class General(commands.Cog):
         await log.info(str(ctx.author) + ' used command ENCRYPT')
 
     @commands.command()
-    async def wdem(self, ctx, *,  game=None):
+    async def wdem(self, ctx, *, game=None):
         """Ask people to play a game with you"""
         if game is None:
             game = ctx.channel.topic
-        url = "https://api-v3.igdb.com/games"
-        headers = {"user-key": config["igdb_api_key"]}
-        payload = 'search "{}"; fields name, cover.image_id;'.format(game)
+
+        if game is None:
+            await ctx.send(":negative_squared_cross_mark: **No games were found!**")
+            return
+
         try:
-            result = requests.get(url=url, headers=headers, data=payload).json()[0]
+            byte_array = wrapper.api_request('games', 'search "{}"; fields name, cover.image_id;'.format(game))
+            result = json.loads(byte_array)[0]
             embed = discord.Embed(title="Wie doet er mee met `{}`?".format(result['name']),
-                                description="\n✅ `Ik doe mee!` \n❎ `Ik doe niet mee.` \n❓ `Ik weet het nog niet.`",
-                                color=0x477FC9)
+                                  description="\n✅ `Ik doe mee!` \n❎ `Ik doe niet mee.` \n❓ `Ik weet het nog niet.`",
+                                  color=0x477FC9)
             embed.set_thumbnail(url="https://images.igdb.com/igdb/image/upload/t_cover_big/{}.jpg"
                                 .format(result['cover']['image_id']))
             embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
@@ -116,6 +120,7 @@ class General(commands.Cog):
             await message.add_reaction("❓")
         except IndexError:
             await ctx.send(":negative_squared_cross_mark: **No games were found!**")
+
 
 @bot.command(usage="<message>")
 async def wdone(ctx, *, msg: discord.Message = None):
@@ -128,6 +133,7 @@ async def wdone(ctx, *, msg: discord.Message = None):
                 if "Wie doet er mee" in embed.title:
                     return await done(message)
     return await done(msg)
+
 
 async def done(msg):
     await msg.clear_reactions()
