@@ -1,4 +1,7 @@
+import discord
 from discord.ext import commands
+from discord_slash import SlashContext
+
 from cogs.Logger import AsyncLogger
 
 
@@ -23,6 +26,9 @@ class CommandErrorHandler(commands.Cog):
         elif isinstance(error, commands.BadArgument):
             await ctx.send(":warning: `Something is wrong with that command. Please try again.`")
             self.log.error("{} [{}]".format(error, instance), opts)
+        elif isinstance(error, discord.errors.HTTPException):
+            await ctx.send(str(error))
+            print(error)
         elif isinstance(error, commands.MissingRole):
             await ctx.send(":no_entry: `{}`".format(error))
         elif isinstance(error, commands.NotOwner):

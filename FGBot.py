@@ -1,34 +1,20 @@
+import datetime
+import json
+import logging
+
 import discord.ext
 from discord.ext import commands
-from igdb.wrapper import IGDBWrapper
-import datetime
-import os
+from discord_slash import SlashCommand
+
 from cogs.Logger import AsyncLogger, Logger
-import logging
-import json
 
 client = discord.Client()
-startup_extensions = ["cogs.Music", "cogs.BotFunctions", "cogs.Extensions", "cogs.CommandErrorHandler"]
+startup_extensions = ["cogs.CommandErrorHandler", "cogs.Games"]  # cogs.Music cogs.BotFunctions cogs.Extensions]
 with open('/app/config/config.json') as config_file:
     config = json.load(config_file)
 
-os.system('clear')
 print("Starting bot...")
 print("")
-
-
-def get_prefix(bot, msg):
-    with open('/app/config/prefixes.json') as prefix_file:
-        prefixes = json.load(prefix_file)
-    guilds = []
-    for guild in prefixes[str(bot.user.id)]:
-        guilds.append(str(guild))
-    if not msg.guild:
-        return commands.when_mentioned_or('!')(bot, msg)
-    elif str(msg.guild.id) in guilds:
-        return commands.when_mentioned_or(prefixes[str(bot.user.id)][str(msg.guild.id)])(bot, msg)
-    else:
-        return commands.when_mentioned_or('!')(bot, msg)
 
 
 def is_guild(ctx):
@@ -38,10 +24,11 @@ def is_guild(ctx):
         raise commands.NoPrivateMessage
 
 
-wrapper = IGDBWrapper(config['igdb']['client_id'], config['igdb']['access_token'])
-bot = commands.AutoShardedBot(command_prefix=get_prefix,
+bot = commands.AutoShardedBot(command_prefix='$',
                               description="Frooty is designed for the FrootGaming Community " +
-                                          "to support administrative features or help with some fun")
+                                          "to support administrative features or help with some fun",
+                              intents=discord.Intents.all())
+slash = SlashCommand(bot, sync_commands=True)
 
 log = AsyncLogger('FrootGaming Bot', 'Bot', bot)
 logger = logging.getLogger('discord')
@@ -94,54 +81,6 @@ class General(commands.Cog):
             new_msg += new_word + ' '
         await ctx.send(new_msg)
         await log.info(str(ctx.author) + ' used command ENCRYPT')
-
-    @commands.command()
-    async def wdem(self, ctx, *, game=None):
-        """Ask people to play a game with you"""
-        if game is None:
-            game = ctx.channel.topic
-
-        if game is None:
-            await ctx.send(":negative_squared_cross_mark: **No games were found!**")
-            return
-
-        try:
-            byte_array = wrapper.api_request('games', 'search "{}"; fields name, cover.image_id;'.format(game))
-            result = json.loads(byte_array)[0]
-            embed = discord.Embed(title="Wie doet er mee met `{}`?".format(result['name']),
-                                  description="\n✅ `Ik doe mee!` \n❎ `Ik doe niet mee.` \n❓ `Ik weet het nog niet.`",
-                                  color=0x477FC9)
-            embed.set_thumbnail(url="https://images.igdb.com/igdb/image/upload/t_cover_big/{}.jpg"
-                                .format(result['cover']['image_id']))
-            embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
-            message = await ctx.send(embed=embed)
-            await message.add_reaction("✅")
-            await message.add_reaction("❎")
-            await message.add_reaction("❓")
-        except IndexError:
-            await ctx.send(":negative_squared_cross_mark: **No games were found!**")
-
-
-@bot.command(usage="<message>")
-async def wdone(ctx, *, msg: discord.Message = None):
-    """Invalidate a previous game poll"""
-    if msg is None:
-        messages = await ctx.channel.history(limit=15).flatten()
-        for message in messages:
-            if message.author == bot.user and (message.embeds is not None or []):
-                embed = message.embeds[0]
-                if "Wie doet er mee" in embed.title:
-                    return await done(message)
-    return await done(msg)
-
-
-async def done(msg):
-    await msg.clear_reactions()
-    await msg.add_reaction("👍")
-    await msg.add_reaction("🇩")
-    await msg.add_reaction("🇴")
-    await msg.add_reaction("🇳")
-    await msg.add_reaction("🇪")
 
 
 @bot.event
