@@ -1,12 +1,13 @@
-import requests
-import time
-import logging
 import asyncio
-from async_timeout import timeout
-import queue
 import json
+import logging
+import queue
+import time
 
-with open('/app/config/config.json') as config_file:
+import requests
+from async_timeout import timeout
+
+with open('config.json') as config_file:
     config = json.load(config_file)
 
 

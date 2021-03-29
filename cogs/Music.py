@@ -1,14 +1,16 @@
-import discord
-from discord.ext import commands
 import asyncio
-from async_timeout import timeout
-from functools import partial
-from youtube_dl import YoutubeDL
-import time
-from cogs.Logger import Logger, AsyncLogger
 import json
+import time
+from functools import partial
+
+import discord
 import spotipy
+from async_timeout import timeout
+from discord.ext import commands
 from spotipy.oauth2 import SpotifyClientCredentials
+from youtube_dl import YoutubeDL
+
+from cogs.Logger import Logger, AsyncLogger
 
 ffmpeg_options = {
     'before_options': '-nostdin',
