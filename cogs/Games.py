@@ -33,7 +33,7 @@ class Games(commands.Cog):
         self.bot = bot
 
     @cog_ext.cog_slash(name="wdem", description="Ask people to play a game with you", guild_ids=[455481676542377995])
-    async def wdem(self, ctx: SlashContext, game = None):
+    async def wdem(self, ctx: SlashContext, game=None):
         if game is None and ctx.channel.topic is None:
             return await ctx.send(":negative_squared_cross_mark: **No games were found!**", hidden=True)
 
@@ -88,7 +88,8 @@ class Games(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        message: discord.Message = await (await self.bot.fetch_channel(payload.channel_id)).fetch_message(payload.message_id)
+        message: discord.Message = await (await self.bot.fetch_channel(payload.channel_id)).fetch_message(
+            payload.message_id)
         user: discord.User = await self.bot.fetch_user(payload.user_id)
         emoji: discord.Emoji = payload.emoji
 
