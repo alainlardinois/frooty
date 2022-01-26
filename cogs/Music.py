@@ -8,7 +8,7 @@ import spotipy
 from async_timeout import timeout
 from discord.ext import commands
 from spotipy.oauth2 import SpotifyClientCredentials
-from youtube_dl import YoutubeDL
+from yt_dlp import YoutubeDL
 
 from cogs.Logger import Logger, AsyncLogger
 
