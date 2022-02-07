@@ -9,7 +9,7 @@ from discord_slash import SlashCommand
 from cogs.Logger import AsyncLogger, Logger
 
 client = discord.Client()
-startup_extensions = ["cogs.CommandErrorHandler", "cogs.Games", "cogs.Extensions"]  # cogs.Music cogs.BotFunctions
+startup_extensions = ["cogs.CommandErrorHandler", "cogs.Games", "cogs.Extensions", "cogs.Music", "cogs.BotFunctions"]
 with open('/app/config/config.json') as config_file:
     config = json.load(config_file)
 
