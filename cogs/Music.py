@@ -1,6 +1,8 @@
 import asyncio
 import json
 import time
+import os
+import hashlib
 from functools import partial
 
 import discord
@@ -501,14 +503,45 @@ class Music(commands.Cog):
         await ctx.message.delete()
 
     @commands.command()
-    async def tts(self, ctx, *, message: str):
+    async def playtts(self, ctx, *, message: str):
         """Play a tts message in a voice call"""
-        async with ctx.typing():
-            tts = gTTS(message, lang='nl')
-            filename = '{}-{}.mp3'.format(ctx.author.id, int(time.time()))
-            tts.save("/var/www/html/tts/" + filename)
+        if ctx.author.voice is None:
+            return await ctx.send(':negative_squared_cross_mark: **You are not connected to a voice channel!**')
 
-        await self.play(ctx, query="https://drive.ipictserver.nl/tts/{}".format(filename))
+        async with ctx.typing():
+            filename = 'tts-{}.mp3'.format(hashlib.md5(message.encode()).hexdigest())
+            path = "/var/www/html/temp/{}".format(filename)
+            if not os.path.isfile(path):
+                tts = gTTS(message, lang='nl')
+                tts.save(path)
+
+            await ctx.invoke(self.join)
+            player = self.get_player(ctx)
+            source = await player.add_to_queue("https://drive.ipictserver.nl/temp/{}".format(filename), ctx.author)
+            embed = discord.Embed(title="Voice TTS Message",
+                                  url=source.yt_url,
+                                  color=0x00bfff)
+            embed.set_thumbnail(url='https://cdn-icons-png.flaticon.com/512/5256/5256064.png')
+            embed.set_author(name="Added to queue", icon_url=ctx.author.avatar_url)
+            if len(message) > 1000:
+                embed.add_field(name='Message', value=message[:1000] + "...")
+            else:
+                embed.add_field(name='Message', value=message)
+            await ctx.message.delete()
+            await ctx.send(embed=embed)
+
+    @commands.command()
+    async def tts(self, ctx, *, message: str):
+        """Generate a tts message and get the link"""
+        async with ctx.typing():
+            filename = 'tts-{}.mp3'.format(hashlib.md5(message.encode()).hexdigest())
+            path = "/var/www/html/temp/{}".format(filename)
+            if not os.path.isfile(path):
+                tts = gTTS(message, lang='nl')
+                tts.save(path)
+            await ctx.message.delete()
+            with open(path, 'rb') as file:
+                await ctx.send(file=discord.File(file, filename=filename))
 
 
 def setup(bot):
