@@ -9,6 +9,7 @@ from async_timeout import timeout
 from discord.ext import commands
 from spotipy.oauth2 import SpotifyClientCredentials
 from yt_dlp import YoutubeDL
+from gtts import gTTS
 
 from cogs.Logger import Logger, AsyncLogger
 
@@ -498,6 +499,16 @@ class Music(commands.Cog):
                 'file': str(source.id) + '.' + str(source.ext)}}
         await self.log.info(str(ctx.author) + ' used command LINK', opts)
         await ctx.message.delete()
+
+    @commands.command()
+    async def tts(self, ctx, *, message: str):
+        """Play a tts message in a voice call"""
+        async with ctx.typing():
+            tts = gTTS(message, lang='nl')
+            filename = '{}-{}.mp3'.format(ctx.author.id, int(time.time()))
+            tts.save("/var/www/html/tts/" + filename)
+
+        await self.play(ctx, query="https://drive.ipictserver.nl/tts/{}".format(filename))
 
 
 def setup(bot):
