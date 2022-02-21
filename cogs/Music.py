@@ -249,9 +249,31 @@ class Music(commands.Cog):
             await ctx.send(':play_pause: Rock on! The music is being resumed.')
         await self.log.info(str(ctx.author) + ' used command PAUSE')
 
+    @commands.command(aliases=['fs'])
+    @commands.is_owner()
+    async def forceskip(self, ctx):
+        """Force skip the current song"""
+        if not ctx.voice_client:
+            return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
+        elif not ctx.voice_client.is_playing():
+            return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
+        elif ctx.author.voice is None:
+            return await ctx.send(
+                ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
+                    ctx.voice_client.channel))
+        elif ctx.author.voice.channel.id != ctx.voice_client.channel.id:
+            return await ctx.send(
+                ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
+                    ctx.voice_client.channel))
+
+        source = ctx.voice_client.source
+        ctx.voice_client.stop()
+        await ctx.send(':fast_forward: **Skipping the current song!**')
+        await self.log.info(str(ctx.author) + ' used command FORCE_SKIP')
+
     @commands.command(aliases=['s', 'next'])
     @commands.check(is_guild)
-    async def skip(self, ctx, *, args=None):
+    async def skip(self, ctx):
         """Skip the current song"""
         if not ctx.voice_client:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
