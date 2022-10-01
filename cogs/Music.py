@@ -9,6 +9,7 @@ import discord
 import spotipy
 from async_timeout import timeout
 from discord.ext import commands
+from discord_slash import cog_ext, SlashContext
 from spotipy.oauth2 import SpotifyClientCredentials
 from yt_dlp import YoutubeDL
 from gtts import gTTS
@@ -478,14 +479,14 @@ class Music(commands.Cog):
         await self.log.info(str(ctx.author) + ' used command STOP')
         await ctx.message.delete()
 
-    @commands.command()
+    @cog_ext.cog_slash(name="download", description="Download a song from youtube")
     async def download(self, ctx, *, query: str):
         """Download a song in discord"""
-        async with ctx.typing():
-            source = await YTDLSource.create_source(ctx.author, query, loop=self.bot.loop)
-            path = '/var/www/html/temp/' + str(source.id) + '.' + str(source.ext)
-            with open(path, 'rb') as file:
-                await ctx.send(file=discord.File(file, filename=source.title + '.' + source.ext))
+        source = await YTDLSource.create_source(ctx.author, query, loop=self.bot.loop)
+        path = '/var/www/html/temp/' + str(source.id) + '.' + str(source.ext)
+        with open(path, 'rb') as file:
+            await ctx.send(file=discord.File(file, filename=source.title + '.' + source.ext))
+
         opts = {
             'meta': {
                 'guild': str(ctx.guild),
@@ -495,24 +496,27 @@ class Music(commands.Cog):
                 'url': str(source.url),
                 'file': str(source.id) + '.' + str(source.ext)}}
         await self.log.info(str(ctx.author) + ' used command DOWNLOAD', opts)
-        await ctx.message.delete()
 
     @commands.command()
+    async def link_depr(self, ctx):
+        await ctx.send("`$link` is deprecated. Please use /link <query>")
+
+    @cog_ext.cog_slash(name="link", description="Download a song from youtube to our web server")
     async def link(self, ctx, *, query: str):
         """Download a song to our web server"""
-        async with ctx.typing():
-            source = await YTDLSource.create_source(ctx.author, query, loop=self.bot.loop)
-            embed = discord.Embed(title=source.title, url=source.yt_url, color=0x00bfff)
-            if source.thumbnail is None:
-                embed.set_thumbnail(url='https://drive.ipictserver.nl/frootcraft/mp3.png')
-            else:
-                embed.set_thumbnail(url=source.thumbnail)
-            embed.set_author(name="Youtube to link", icon_url=ctx.author.avatar_url)
-            embed.add_field(name='Uploaded by', value=source.uploader)
-            embed.add_field(name='Duration', value=source.duration)
-            link = "http://drive.ipictserver.nl/temp/" + source.id + '.' + source.ext
-            embed.add_field(name='Link', value=link)
-            await ctx.send(embed=embed)
+        source = await YTDLSource.create_source(ctx.author, query, loop=self.bot.loop)
+        embed = discord.Embed(title=source.title, url=source.yt_url, color=0x00bfff)
+        if source.thumbnail is None:
+            embed.set_thumbnail(url='https://drive.ipictserver.nl/frootcraft/mp3.png')
+        else:
+            embed.set_thumbnail(url=source.thumbnail)
+        embed.set_author(name="Youtube to link", icon_url=ctx.author.avatar_url)
+        embed.add_field(name='Uploaded by', value=source.uploader)
+        embed.add_field(name='Duration', value=source.duration)
+        link = "http://drive.ipictserver.nl/temp/" + source.id + '.' + source.ext
+        embed.add_field(name='Link', value=link)
+        await ctx.send(embed=embed)
+
         opts = {
             'meta': {
                 'guild': str(ctx.guild),
@@ -522,7 +526,6 @@ class Music(commands.Cog):
                 'url': str(source.url),
                 'file': str(source.id) + '.' + str(source.ext)}}
         await self.log.info(str(ctx.author) + ' used command LINK', opts)
-        await ctx.message.delete()
 
     @commands.command()
     async def playtts(self, ctx, *, message: str):
@@ -552,18 +555,16 @@ class Music(commands.Cog):
             await ctx.message.delete()
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @cog_ext.cog_slash(name="tts", description="Convert text to speech")
     async def tts(self, ctx, *, message: str):
         """Generate a tts message and get the link"""
-        async with ctx.typing():
-            filename = 'tts-{}.mp3'.format(hashlib.md5(message.encode()).hexdigest())
-            path = "/var/www/html/temp/{}".format(filename)
-            if not os.path.isfile(path):
-                tts = gTTS(message, lang='nl')
-                tts.save(path)
-            await ctx.message.delete()
-            with open(path, 'rb') as file:
-                await ctx.send(file=discord.File(file, filename=filename))
+        filename = 'tts-{}.mp3'.format(hashlib.md5(message.encode()).hexdigest())
+        path = "/var/www/html/temp/{}".format(filename)
+        if not os.path.isfile(path):
+            tts = gTTS(message, lang='nl')
+            tts.save(path)
+        with open(path, 'rb') as file:
+            await ctx.send(file=discord.File(file, filename=filename))
 
 
 def setup(bot):
