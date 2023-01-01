@@ -90,7 +90,7 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
         self.query = query
 
     @classmethod
-    async def create_source(cls, author, query: str, *, loop):
+    async def create_source(cls, user, query: str, *, loop):
         loop = loop or asyncio.get_event_loop()
         execdir = partial(ytdl.extract_info, url=query, download=True)
         data = await loop.run_in_executor(None, execdir)
@@ -99,7 +99,7 @@ class YTDLSource(nextcord.PCMVolumeTransformer):
             data = data['entries'][0]
 
         source = ytdl.prepare_filename(data)
-        return cls(nextcord.FFmpegPCMAudio(source), data=data, requester=author, query=query)
+        return cls(nextcord.FFmpegPCMAudio(source), data=data, requester=user, query=query)
 
 
 class Player:
@@ -110,7 +110,6 @@ class Player:
         self.bot = bot
         self.guild = ctx.guild
         self.channel = ctx.channel
-        self.cog = ctx.cog
         self.queue = asyncio.Queue()
         self.text_queue = []
         self.loop = False
@@ -118,7 +117,7 @@ class Player:
         self.current = None
         self.volume = .5
         self.last_started = None
-        ctx.bot.loop.create_task(self.player_loop())
+        bot.loop.create_task(self.player_loop())
 
     async def player_loop(self):
         while not self.bot.is_closed():
@@ -174,7 +173,8 @@ class Player:
         return new_source
 
     def destroy(self, guild):
-        return self.bot.loop.create_task(self.cog.cleanup(guild))
+        pass
+        # return self.bot.loop.create_task(self.cog.cleanup(guild))
 
 
 class Music(commands.Cog):
@@ -207,12 +207,12 @@ class Music(commands.Cog):
     @commands.check(is_guild)
     async def join(self, ctx):
         """Connect the bot to your current voice channel"""
-        if ctx.author.voice is None:
+        if ctx.user.voice.channel is None:
             await ctx.send(':negative_squared_cross_mark: **You are not connected to a voice channel!**')
         else:
-            channel = ctx.author.voice.channel
-            if ctx.voice_client is not None:
-                return await ctx.voice_client.move_to(channel)
+            channel = ctx.user.voice.channel
+            if ctx.user.voice.channel is not None:
+                return await ctx.user.voice.channel.connect()
             player = self.get_player(ctx)
             await channel.connect()
             await ctx.send(':checkered_flag: **Connected to** `' + str(channel) + '` **and bound to** `#' +
@@ -222,36 +222,37 @@ class Music(commands.Cog):
     @commands.check(is_guild)
     async def play(self, ctx, *, query: str):
         """Request a song and add it to the queue"""
-        if ctx.author.voice is None:
+        if ctx.user.voice.channel is None:
             return await ctx.send(':negative_squared_cross_mark: **You are not connected to a voice channel!**')
-        async with ctx.typing():
-            await ctx.invoke(self.join)
-            player = self.get_player(ctx)
 
-            if 'spotify' in query and 'http' in query:
-                try:
-                    uri = query.strip('https://open.spotify.com/track/')
-                    uri = uri.split('?')
-                    uri = 'spotify:track:' + uri[0]
-                    track_info = sp.track(uri)
-                    query = track_info['name'] + ' ' + track_info['artists'][0]['name']
-                except Exception as e:
-                    print(str(e))
-            elif 'spotify:track:' in query:
-                track_info = sp.track(query)
+        # await ctx.invoke(self.join)
+        player = self.get_player(ctx)
+
+        if 'spotify' in query and 'http' in query:
+            try:
+                uri = query.strip('https://open.spotify.com/track/')
+                uri = uri.split('?')
+                uri = 'spotify:track:' + uri[0]
+                track_info = sp.track(uri)
                 query = track_info['name'] + ' ' + track_info['artists'][0]['name']
-            source = await player.add_to_queue(query, ctx.author)
-            embed = nextcord.Embed(title=source.title,
-                                  url=source.yt_url,
-                                  color=0x00bfff)
-            if source.thumbnail is None:
-                embed.set_thumbnail(url='https://drive.ipictserver.nl/mp3.png')
-            else:
-                embed.set_thumbnail(url=source.thumbnail)
-            embed.set_author(name="Added to queue", icon_url=ctx.author.avatar_url)
-            embed.add_field(name='Uploaded by', value=source.uploader)
-            embed.add_field(name='Duration', value=source.duration)
-            await ctx.send(embed=embed)
+            except Exception as e:
+                print(str(e))
+        elif 'spotify:track:' in query:
+            track_info = sp.track(query)
+            query = track_info['name'] + ' ' + track_info['artists'][0]['name']
+        source = await player.add_to_queue(query, ctx.user)
+        embed = nextcord.Embed(title=source.title,
+                               url=source.yt_url,
+                               color=0x00bfff)
+        if source.thumbnail is None:
+            embed.set_thumbnail(url='https://drive.ipictserver.nl/mp3.png')
+        else:
+            embed.set_thumbnail(url=source.thumbnail)
+        embed.set_user(name="Added to queue", icon_url=ctx.user.avatar_url)
+        embed.add_field(name='Uploaded by', value=source.uploader)
+        embed.add_field(name='Duration', value=source.duration)
+        await ctx.send(embed=embed)
+
         opts = {
             'meta': {
                 'guild': str(ctx.guild),
@@ -266,70 +267,70 @@ class Music(commands.Cog):
     @commands.check(is_guild)
     async def pause(self, ctx):
         """Pause or resume the current song"""
-        if not ctx.voice_client:
+        if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif ctx.author.voice is None:
+        elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
-                    ctx.voice_client.channel))
+                    ctx.user.voice.channel))
 
-        if not ctx.voice_client.is_paused():
-            ctx.voice_client.pause()
+        if not ctx.user.voice.channel.is_paused():
+            ctx.user.voice.channel.pause()
             await ctx.send(':play_pause: The music has been paused!')
-        elif ctx.voice_client.is_paused():
-            ctx.voice_client.resume()
+        elif ctx.user.voice.channel.is_paused():
+            ctx.user.voice.channel.resume()
             await ctx.send(':play_pause: Rock on! The music is being resumed.')
 
     @nextcord.slash_command(guild_ids=[484345041935138816, 1059214747406434455])
     @commands.is_owner()
     async def forceskip(self, ctx):
         """Force skip the current song"""
-        if not ctx.voice_client:
+        if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif not ctx.voice_client.is_playing():
+        elif not ctx.user.voice.channel.is_playing():
             return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
-        elif ctx.author.voice is None:
+        elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
-                    ctx.voice_client.channel))
-        elif ctx.author.voice.channel.id != ctx.voice_client.channel.id:
+                    ctx.user.voice.channel))
+        elif ctx.user.voice.channel.id != ctx.user.voice.channel.id:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
-                    ctx.voice_client.channel))
+                    ctx.user.voice.channel))
 
-        source = ctx.voice_client.source
-        ctx.voice_client.stop()
+        source = ctx.user.voice.channel.source
+        ctx.user.voice.channel.stop()
         await ctx.send(':fast_forward: **Skipping the current song!**')
 
     @nextcord.slash_command(guild_ids=[484345041935138816, 1059214747406434455])
     @commands.check(is_guild)
     async def skip(self, ctx):
         """Skip the current song"""
-        if not ctx.voice_client:
+        if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif not ctx.voice_client.is_playing():
+        elif not ctx.user.voice.channel.is_playing():
             return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
-        elif ctx.author.voice is None:
+        elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
-                    ctx.voice_client.channel))
-        elif ctx.author.voice.channel.id != ctx.voice_client.channel.id:
+                    ctx.user.voice.channel))
+        elif ctx.user.voice.channel.id != ctx.user.voice.channel.id:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
-                    ctx.voice_client.channel))
+                    ctx.user.voice.channel))
 
-        source = ctx.voice_client.source
-        if str(ctx.author) == str(source.requester):
-            ctx.voice_client.stop()
+        source = ctx.user.voice.channel.source
+        if str(ctx.user) == str(source.requester):
+            ctx.user.voice.channel.stop()
             await ctx.send(':fast_forward: **Skipping the current song!**')
         else:
-            if str(ctx.author) not in source.skip_votes:
-                source.skip_votes.append(str(ctx.author))
-                await ctx.send(':ballot_box: `{}` **voted to skip this song**.'.format(ctx.author))
-                members_in_channel = len(ctx.voice_client.channel.members) - 1
-                members_voted_skip = len(source.skip_votes)
-                if (members_voted_skip / members_in_channel) > 0.55:
-                    ctx.voice_client.stop()
+            if str(ctx.user) not in source.skip_votes:
+                source.skip_votes.append(str(ctx.user))
+                await ctx.send(':ballot_box: `{}` **voted to skip this song**.'.format(ctx.user))
+                users_in_channel = len(ctx.user.voice.channel.users) - 1
+                users_voted_skip = len(source.skip_votes)
+                if (users_voted_skip / users_in_channel) > 0.55:
+                    ctx.user.voice.channel.stop()
                     await ctx.send(':fast_forward: **The crowd has decided! Skipping the current song...**')
             else:
                 await ctx.send(':negative_squared_cross_mark: **You already voted to skip this song.**')
@@ -338,12 +339,12 @@ class Music(commands.Cog):
     @commands.check(is_guild)
     async def loop(self, ctx):
         """Play the queue in a loop"""
-        if not ctx.voice_client:
+        if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif ctx.author.voice is None:
+        elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
-                    ctx.voice_client.channel))
+                    ctx.user.voice.channel))
 
         player = self.get_player(ctx)
         if player.loop:
@@ -357,22 +358,22 @@ class Music(commands.Cog):
     @commands.check(is_guild)
     async def playlist(self, ctx, url):
         """Add a spotify playlist to the queue. Take the Spotify playlist URL"""
-        if not ctx.voice_client:
+        if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif ctx.author.voice is None:
+        elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
-                    ctx.voice_client.channel))
+                    ctx.user.voice.channel))
 
         if "https://open.spotify.com/playlist/" in url:
             await ctx.send(":hourglass_flowing_sand: **Now processing your playlist. This may take a moment...**")
             player = self.get_player(ctx)
-            data = await player.add_playlist(url, ctx.author)
+            data = await player.add_playlist(url, ctx.user)
             embed = nextcord.Embed(title=data['title'],
                                   url=data['url'],
                                   color=0x0be37f)
             embed.set_thumbnail(url=data['image'])
-            embed.set_author(name="Playlist processed", icon_url=ctx.author.avatar_url)
+            embed.set_user(name="Playlist processed", icon_url=ctx.user.avatar_url)
             embed.set_footer(text="Playlist is now in the queue! You can view the next 5 songs with the queue command.")
             embed.add_field(name='# Songs', value=data['tracks'])
             embed.add_field(name="Playlist owner", value=data['owner'])
@@ -385,12 +386,12 @@ class Music(commands.Cog):
     @commands.check(is_guild)
     async def queue(self, ctx):
         """View the queue"""
-        if not ctx.voice_client:
+        if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif ctx.author.voice is None:
+        elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
-                    ctx.voice_client.channel))
+                    ctx.user.voice.channel))
 
         player = self.get_player(ctx)
         if player.queue.empty():
@@ -412,23 +413,23 @@ class Music(commands.Cog):
     @commands.check(is_guild)
     async def now(self, ctx):
         """Check which song is currently playing"""
-        if not ctx.voice_client:
+        if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif not ctx.voice_client.is_playing():
+        elif not ctx.user.voice.channel.is_playing():
             return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
-        elif ctx.author.voice is None:
+        elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
-                    ctx.voice_client.channel))
+                    ctx.user.voice.channel))
 
-        source = ctx.voice_client.source
+        source = ctx.user.voice.channel.source
         player = self.get_player(ctx)
         embed = nextcord.Embed(title=source.title, url=source.yt_url, color=0x00bfff)
         if source.thumbnail is None:
             embed.set_thumbnail(url='https://drive.ipictserver.nl/mp3.png')
         else:
             embed.set_thumbnail(url=source.thumbnail)
-        embed.set_author(name="Now playing", icon_url=source.requester.avatar_url)
+        embed.set_user(name="Now playing", icon_url=source.requester.avatar_url)
         embed.add_field(name='Uploaded by', value=source.uploader)
         embed.add_field(name='Duration', value=source.duration)
         elapsed = time.time() - player.last_started
@@ -443,12 +444,12 @@ class Music(commands.Cog):
     @commands.check(is_guild)
     async def remove(self, ctx, queue_number: int):
         """Remove a song from the queue"""
-        if not ctx.voice_client:
+        if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif ctx.author.voice is None:
+        elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
-                    ctx.voice_client.channel))
+                    ctx.user.voice.channel))
         player = self.get_player(ctx)
         if player.queue.empty():
             return await ctx.send(':negative_squared_cross_mark: **The queue is empty!**')
@@ -474,20 +475,20 @@ class Music(commands.Cog):
     @commands.check(is_guild)
     async def volume(self, ctx, *, vol: float):
         """Change the volume"""
-        if not ctx.voice_client:
+        if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif not ctx.voice_client.is_playing():
+        elif not ctx.user.voice.channel.is_playing():
             return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
-        elif ctx.author.voice is None:
+        elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
-                    ctx.voice_client.channel))
+                    ctx.user.voice.channel))
         if not 0 < vol <= 100:
             return await ctx.send(':negative_squared_cross_mark: **Please enter a value between 1 and 100**')
 
         player = self.get_player(ctx)
-        if ctx.voice_client.source:
-            ctx.voice_client.source.volume = vol / 100
+        if ctx.user.voice.channel.source:
+            ctx.user.voice.channel.source.volume = vol / 100
         player.volume = vol / 100
         await ctx.send(":loud_sound: Changed volume to **{}%**".format(vol))
 
@@ -495,7 +496,7 @@ class Music(commands.Cog):
     @commands.check(is_guild)
     async def stop(self, ctx):
         """Stop the music and leave the channel"""
-        if not ctx.voice_client:
+        if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
 
         await self.cleanup(ctx.guild)
@@ -504,7 +505,7 @@ class Music(commands.Cog):
     @nextcord.slash_command(guild_ids=[484345041935138816, 1059214747406434455])
     async def download(self, ctx, *, query: str):
         """Download a song in nextcord"""
-        source = await YTDLSource.create_source(ctx.author, query, loop=self.bot.loop)
+        source = await YTDLSource.create_source(ctx.user, query, loop=self.bot.loop)
         path = '/var/www/html/temp/' + str(source.id) + '.' + str(source.ext)
         with open(path, 'rb') as file:
             await ctx.send(file=nextcord.File(file, filename=source.title + '.' + source.ext))
@@ -521,13 +522,13 @@ class Music(commands.Cog):
     @nextcord.slash_command(guild_ids=[484345041935138816, 1059214747406434455])
     async def link(self, ctx, *, query: str):
         """Download a song to our web server"""
-        source = await YTDLSource.create_source(ctx.author, query, loop=self.bot.loop)
+        source = await YTDLSource.create_source(ctx.user, query, loop=self.bot.loop)
         embed = nextcord.Embed(title=source.title, url=source.yt_url, color=0x00bfff)
         if source.thumbnail is None:
             embed.set_thumbnail(url='https://drive.ipictserver.nl/frootcraft/mp3.png')
         else:
             embed.set_thumbnail(url=source.thumbnail)
-        embed.set_author(name="Youtube to link", icon_url=ctx.author.avatar_url)
+        embed.set_user(name="Youtube to link", icon_url=ctx.user.avatar_url)
         embed.add_field(name='Uploaded by', value=source.uploader)
         embed.add_field(name='Duration', value=source.duration)
         link = "http://drive.ipictserver.nl/temp/" + source.id + '.' + source.ext
@@ -547,30 +548,30 @@ class Music(commands.Cog):
     @commands.check(is_guild)
     async def playtts(self, ctx, *, message: str):
         """Play a tts message in a voice call"""
-        if ctx.author.voice is None:
+        if ctx.user.voice.channel is None:
             return await ctx.send(':negative_squared_cross_mark: **You are not connected to a voice channel!**')
 
-        async with ctx.typing():
-            filename = 'tts-{}.mp3'.format(hashlib.md5(message.encode()).hexdigest())
-            path = "/var/www/html/temp/{}".format(filename)
-            if not os.path.isfile(path):
-                tts = gTTS(message, lang='nl')
-                tts.save(path)
+        filename = 'tts-{}.mp3'.format(hashlib.md5(message.encode()).hexdigest())
+        path = "/var/www/html/temp/{}".format(filename)
+        if not os.path.isfile(path):
+            tts = gTTS(message, lang='nl')
+            tts.save(path)
 
-            await ctx.invoke(self.join)
-            player = self.get_player(ctx)
-            source = await player.add_to_queue("https://drive.ipictserver.nl/temp/{}".format(filename), ctx.author)
-            embed = nextcord.Embed(title="Voice TTS Message",
-                                  url=source.yt_url,
-                                  color=0x00bfff)
-            embed.set_thumbnail(url='https://cdn-icons-png.flaticon.com/512/5256/5256064.png')
-            embed.set_author(name="Added to queue", icon_url=ctx.author.avatar_url)
-            if len(message) > 1000:
-                embed.add_field(name='Message', value=message[:1000] + "...")
-            else:
-                embed.add_field(name='Message', value=message)
-            await ctx.message.delete()
-            await ctx.send(embed=embed)
+        await ctx.invoke(self.join)
+        player = self.get_player(ctx)
+        source = await player.add_to_queue("https://drive.ipictserver.nl/temp/{}".format(filename), ctx.user)
+        embed = nextcord.Embed(title="Voice TTS Message",
+                               url=source.yt_url,
+                               color=0x00bfff)
+        embed.set_thumbnail(url='https://cdn-icons-png.flaticon.com/512/5256/5256064.png')
+        embed.set_user(name="Added to queue", icon_url=ctx.user.avatar_url)
+        if len(message) > 1000:
+            embed.add_field(name='Message', value=message[:1000] + "...")
+        else:
+            embed.add_field(name='Message', value=message)
+        await ctx.message.delete()
+        await ctx.send(embed=embed)
+
 
     @nextcord.slash_command(guild_ids=[484345041935138816, 1059214747406434455])
     async def tts(self, ctx, *, message: str):

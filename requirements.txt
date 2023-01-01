@@ -1,4 +1,6 @@
 nextcord~=2.3.2
+nextcord[voice]~=2.3.2
 spotipy~=2.22.0
 gTTS~=2.3.0
 yt_dlp
+ffmpeg
