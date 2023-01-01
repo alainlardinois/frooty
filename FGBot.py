@@ -248,7 +248,7 @@ class Music(commands.Cog):
             embed.set_thumbnail(url='https://drive.ipictserver.nl/mp3.png')
         else:
             embed.set_thumbnail(url=source.thumbnail)
-        embed.set_user(name="Added to queue", icon_url=ctx.user.avatar_url)
+        embed.set_author(name="Added to queue", icon_url=ctx.user.avatar_url)
         embed.add_field(name='Uploaded by', value=source.uploader)
         embed.add_field(name='Duration', value=source.duration)
         await ctx.send(embed=embed)
@@ -287,8 +287,8 @@ class Music(commands.Cog):
         """Force skip the current song"""
         if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif not ctx.user.voice.channel.is_playing():
-            return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
+        # elif not ctx.user.voice.channel.is_playing():
+        #     return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
         elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
@@ -308,8 +308,8 @@ class Music(commands.Cog):
         """Skip the current song"""
         if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif not ctx.user.voice.channel.is_playing():
-            return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
+        # elif not ctx.user.voice.channel.is_playing():
+        #     return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
         elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
@@ -373,7 +373,7 @@ class Music(commands.Cog):
                                   url=data['url'],
                                   color=0x0be37f)
             embed.set_thumbnail(url=data['image'])
-            embed.set_user(name="Playlist processed", icon_url=ctx.user.avatar_url)
+            embed.set_author(name="Playlist processed", icon_url=ctx.user.avatar_url)
             embed.set_footer(text="Playlist is now in the queue! You can view the next 5 songs with the queue command.")
             embed.add_field(name='# Songs', value=data['tracks'])
             embed.add_field(name="Playlist owner", value=data['owner'])
@@ -415,8 +415,8 @@ class Music(commands.Cog):
         """Check which song is currently playing"""
         if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif not ctx.user.voice.channel.is_playing():
-            return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
+        # elif not ctx.user.voice.channel.is_playing():
+        #     return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
         elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
@@ -429,7 +429,7 @@ class Music(commands.Cog):
             embed.set_thumbnail(url='https://drive.ipictserver.nl/mp3.png')
         else:
             embed.set_thumbnail(url=source.thumbnail)
-        embed.set_user(name="Now playing", icon_url=source.requester.avatar_url)
+        embed.set_author(name="Now playing", icon_url=source.requester.avatar_url)
         embed.add_field(name='Uploaded by', value=source.uploader)
         embed.add_field(name='Duration', value=source.duration)
         elapsed = time.time() - player.last_started
@@ -477,8 +477,8 @@ class Music(commands.Cog):
         """Change the volume"""
         if not ctx.user.voice.channel:
             return await ctx.send(':negative_squared_cross_mark: **Not connected to a voice channel.**')
-        elif not ctx.user.voice.channel.is_playing():
-            return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
+        # elif not ctx.user.voice.channel.is_playing():
+        #     return await ctx.send(':negative_squared_cross_mark: **Not playing any music right now.**')
         elif ctx.user.voice.channel is None:
             return await ctx.send(
                 ':negative_squared_cross_mark: **You have to be connected to `{}` to do this!**'.format(
@@ -528,7 +528,7 @@ class Music(commands.Cog):
             embed.set_thumbnail(url='https://drive.ipictserver.nl/frootcraft/mp3.png')
         else:
             embed.set_thumbnail(url=source.thumbnail)
-        embed.set_user(name="Youtube to link", icon_url=ctx.user.avatar_url)
+        embed.set_author(name="Youtube to link", icon_url=ctx.user.avatar_url)
         embed.add_field(name='Uploaded by', value=source.uploader)
         embed.add_field(name='Duration', value=source.duration)
         link = "http://drive.ipictserver.nl/temp/" + source.id + '.' + source.ext
@@ -564,7 +564,7 @@ class Music(commands.Cog):
                                url=source.yt_url,
                                color=0x00bfff)
         embed.set_thumbnail(url='https://cdn-icons-png.flaticon.com/512/5256/5256064.png')
-        embed.set_user(name="Added to queue", icon_url=ctx.user.avatar_url)
+        embed.set_author(name="Added to queue", icon_url=ctx.user.avatar_url)
         if len(message) > 1000:
             embed.add_field(name='Message', value=message[:1000] + "...")
         else:
