@@ -557,7 +557,7 @@ class Music(commands.Cog):
             tts = gTTS(message, lang='nl')
             tts.save(path)
 
-        await ctx.invoke(self.join)
+        # await ctx.invoke(self.join)
         player = self.get_player(ctx)
         source = await player.add_to_queue("https://drive.ipictserver.nl/temp/{}".format(filename), ctx.user)
         embed = nextcord.Embed(title="Voice TTS Message",
