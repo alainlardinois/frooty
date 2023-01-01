@@ -1,14 +1,10 @@
-import discord
-from discord.ext import commands
-from discord_slash import SlashContext
-
-from cogs.Logger import AsyncLogger
+import nextcord
+from nextcord.ext import commands
 
 
 class CommandErrorHandler(commands.Cog):
-    def __init__(self, bot, log):
+    def __init__(self, bot):
         self.bot = bot
-        self.log = log
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -25,8 +21,8 @@ class CommandErrorHandler(commands.Cog):
             await ctx.send(":no_entry: `This command can't be used in private messaging.`")
         elif isinstance(error, commands.BadArgument):
             await ctx.send(":warning: `Something is wrong with that command. Please try again.`")
-            self.log.error("{} [{}]".format(error, instance), opts)
-        elif isinstance(error, discord.errors.HTTPException):
+            print("{} [{}]".format(error, instance), opts)
+        elif isinstance(error, nextcord.errors.HTTPException):
             await ctx.send(str(error))
             print(error)
         elif isinstance(error, commands.MissingRole):
@@ -39,9 +35,8 @@ class CommandErrorHandler(commands.Cog):
             await ctx.send(":warning: `{}`".format(error))
         else:
             await ctx.send("DEBUG `{} [{}]`".format(error, instance))
-            self.log.error("{} [{}]".format(error, instance), opts)
+            print("{} [{}]".format(error, instance), opts)
 
 
 def setup(bot):
-    log = AsyncLogger(str(bot.user.name), 'ErrorHandler', bot)
-    bot.add_cog(CommandErrorHandler(bot, log))
+    bot.add_cog(CommandErrorHandler(bot))
