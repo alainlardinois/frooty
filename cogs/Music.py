@@ -180,7 +180,7 @@ class Music(commands.Cog):
         else:
             raise VoiceNotConnectedException
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def join(self, interaction: Interaction):
         """Connect the bot to your current voice channel"""
         if interaction.user.voice.channel is None:
@@ -193,7 +193,7 @@ class Music(commands.Cog):
         await channel.connect()
         await interaction.send(':checkered_flag: **Connected to** `' + str(channel) + '` **and bound to** `#' + str(player.channel) + '`')
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def play(self, interaction: Interaction, *, query):
         """Request a song and add it to the queue"""
         if interaction.user.voice.channel is None:
@@ -231,7 +231,7 @@ class Music(commands.Cog):
         embed.add_field(name='Duration', value=source.duration)
         await interaction.send(embed=embed)
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def pause(self, interaction: Interaction):
         """Pause or resume the current song"""
         if not self.is_voice_connected():
@@ -247,7 +247,7 @@ class Music(commands.Cog):
             voice.resume()
             await interaction.send(':play_pause: Rock on! The music is being resumed.')
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def skip(self, interaction: Interaction):
         """Skip the current song"""
         if not self.is_voice_connected():
@@ -276,7 +276,7 @@ class Music(commands.Cog):
             else:
                 await interaction.send(':negative_squared_cross_mark: **You already voted to skip this song.**', ephemeral=True)
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def loop(self, interaction: Interaction):
         """Play the queue in a loop"""
         if not self.is_voice_connected():
@@ -293,7 +293,7 @@ class Music(commands.Cog):
             player.loop = True
             await interaction.send(":repeat: **Queue loop is now `enabled`**")
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def queue(self, interaction: Interaction):
         """View the queue"""
         if not self.is_voice_connected():
@@ -317,7 +317,7 @@ class Music(commands.Cog):
         embed.set_footer(text="Total queue length: {} songs • Queue loop: {}".format(len(player.text_queue), player.loop))
         await interaction.send(embed=embed)
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def now(self, interaction: Interaction):
         """Check which song is currently playing"""
         if not self.is_voice_connected():
@@ -346,7 +346,7 @@ class Music(commands.Cog):
         embed.add_field(name='Elapsed Time', value=elapsed_time)
         await interaction.send(embed=embed)
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def remove(self, interaction: Interaction, index: int):
         """Remove a song from the queue"""
         if not self.is_voice_connected():
@@ -374,7 +374,7 @@ class Music(commands.Cog):
         else:
             return await interaction.send(':negative_squared_cross_mark: **Please enter a value between 1 and ' + str(songs) + '**', ephemeral=True)
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def volume(self, interaction: Interaction, *, volume: float):
         """Change the volume"""
         if not self.is_voice_connected():
@@ -393,7 +393,7 @@ class Music(commands.Cog):
         player.volume = volume / 100
         await interaction.send(":loud_sound: Changed volume to **{}%**".format(volume))
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def stop(self, interaction: Interaction):
         """Stop the music and leave the channel"""
         if not self.is_voice_connected():
@@ -401,14 +401,14 @@ class Music(commands.Cog):
         await self.cleanup(interaction.guild)
         await interaction.send(":wave: Bye!")
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def download(self, interaction: Interaction, *, query: str):
         """Download a song in discord"""
         await interaction.response.defer()
         source = await YTDLSource.create_source(interaction.user, query, loop=self.bot.loop)
         await interaction.send(file=nextcord.File('/var/www/html/temp/' + str(source.id) + '.' + str(source.ext)))
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def link(self, interaction: Interaction, *, query: str):
         """Download a song to our web server"""
         await interaction.response.defer()
@@ -424,7 +424,7 @@ class Music(commands.Cog):
         embed.add_field(name='Link', value="https://drive.ipictserver.nl/temp/" + source.id + '.' + source.ext)
         await interaction.send(embed=embed)
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def playtts(self, interaction: Interaction, *, message: str):
         """Play a tts message in a voice call"""
         if interaction.user.voice.channel is None:
@@ -456,7 +456,7 @@ class Music(commands.Cog):
             embed.add_field(name='Message', value=message)
         await interaction.send(embed=embed)
 
-    @nextcord.slash_command()
+    @nextcord.slash_command(force_global=True)
     async def tts(self, interaction: Interaction, *, message: str):
         """Generate a tts message and get the link"""
         await interaction.response.defer()
