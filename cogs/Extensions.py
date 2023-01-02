@@ -8,7 +8,7 @@ class Extensions(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @nextcord.slash_command(guild_ids=[484345041935138816, 1059214747406434455])
+    @nextcord.slash_command(guild_ids=[484345041935138816])
     @commands.is_owner()
     async def reload(self, ctx, *, extension):
         """Reload an extension"""
@@ -24,7 +24,7 @@ class Extensions(commands.Cog):
                 await ctx.send('Failed to reload extension {}\n{}'.format(extension, exc))
                 print('Failed to reload extension {}\n{}'.format(extension, exc))
 
-    @nextcord.slash_command(guild_ids=[484345041935138816, 1059214747406434455])
+    @nextcord.slash_command(guild_ids=[484345041935138816])
     @commands.is_owner()
     async def load(self, ctx, *, extension):
         """Load an extension"""
@@ -40,8 +40,7 @@ class Extensions(commands.Cog):
                 await ctx.send('Failed to load extension {}\n{}'.format(extension, exc))
                 print('Failed to reload extension {}\n{}'.format(extension, exc))
 
-    @nextcord.slash_command(guild_ids=[484345041935138816, 1059214747406434455])
-    @commands.is_owner()
+    @nextcord.slash_command(guild_ids=[484345041935138816])
     async def unload(self, ctx, *, extension):
         """Unload an extension"""
         await ctx.message.delete()
