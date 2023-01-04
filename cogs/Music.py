@@ -224,7 +224,9 @@ class Music(commands.Cog):
         try:
             source = await player.add_to_queue(query, interaction.user)
         except ResultNotFoundException:
-            return await interaction.send(":search: Failed to find a suitable result!")
+            return await interaction.send(":x: Failed to find result!")
+        except youtube_dl.utils.DownloadError as e:
+            return await interaction.send(":x: Error downloading video: `{}`".format(e))
 
         embed = nextcord.Embed(title=source.title, url=source.yt_url, color=0x00bfff)
         if source.thumbnail is None:
