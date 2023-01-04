@@ -32,6 +32,7 @@ ytdl_options = {
 
 client_credentials_manager = SpotifyClientCredentials(client_id=os.getenv("SPOTIFY_CLIENT_ID"), client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"))
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+ytdl = youtube_dl.YoutubeDL(ytdl_options)
 
 
 class ResultNotFoundException(Exception):
@@ -421,7 +422,7 @@ class Music(commands.Cog):
         embed.set_author(name="Youtube to link", icon_url=interaction.user.avatar.url)
         embed.add_field(name='Uploaded by', value=source.uploader)
         embed.add_field(name='Duration', value=source.duration)
-        embed.add_field(name='Link', value="https://drive.ipictserver.nl/temp/" + source.id + '.' + source.ext)
+        embed.add_field(name='Link', value="https://botcdn.iplink.me/" + source.id + '.' + source.ext)
         await interaction.send(embed=embed)
 
     @nextcord.slash_command(force_global=True)
@@ -441,7 +442,7 @@ class Music(commands.Cog):
         player = self.get_player(interaction)
 
         try:
-            source = await player.add_to_queue("https://drive.ipictserver.nl/temp/{}".format(filename), interaction.user)
+            source = await player.add_to_queue("https://botcdn.iplink.me/{}".format(filename), interaction.user)
         except ResultNotFoundException:
             return await interaction.send(":search: Failed to find a suitable result!")
 
@@ -466,9 +467,3 @@ class Music(commands.Cog):
             tts = gTTS(message, lang='nl')
             tts.save(path)
         await interaction.send(file=nextcord.File(path))
-
-
-def setup(bot):
-    global ytdl
-    ytdl = youtube_dl.YoutubeDL(ytdl_options)
-    bot.add_cog(Music(bot))
