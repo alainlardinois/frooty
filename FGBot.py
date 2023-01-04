@@ -1,6 +1,5 @@
 import os
 from nextcord.ext import commands
-
 from cogs.Music import Music
 
 print("Starting bot...")
